@@ -1,0 +1,311 @@
+# == Class: barbican::api
+#
+# The barbican::api class encapsulates a Barbican API service running
+# in a gunicorn container.
+#
+# === Parameters
+#
+# [*ensure_package*]
+#   (optional) The state of barbican packages
+#   Defaults to 'present'
+#
+# [*client_package_ensure*]
+#   (optional) Desired ensure state of the client package.
+#   accepts latest or specific versions.
+#   Defaults to 'present'.
+#
+# [*bind_host*]
+#   (optional) The IP address of the network interface to listen on
+#   Default to '0.0.0.0'.
+#
+# [*bind_port*]
+#   (optional) Port that barbican binds to.
+#   Defaults to '9311'
+#
+# [*host_href*]
+#   (optional) The reference that clients use to point back to the service
+#   Defaults to http://`hostname`:<bind_port>
+#   TODO: needs to be set
+#
+# [*max_allowed_secret_in_bytes*]
+#   (optional) Maximum allowed secret size to be stored.
+#   Defaults to $::os_service_default
+#
+# [*max_allowed_request_size_in_bytes*]
+#   (optional) Maximum request size against the barbican API.
+#   Defaults to $::os_service_default
+#
+# [*rpc_backend*]
+#   (optional) The rpc backend implementation to use, can be:
+#     rabbit (for rabbitmq)
+#     qpid (for qpid)
+#     zmq (for zeromq)
+#   Defaults to $::os_service_default
+#
+# [*rabbit_host*]
+#   (optional) Location of rabbitmq installation.
+#   Defaults to $::os_service_default
+#
+# [*rabbit_hosts*]
+#   (optional) List of clustered rabbit servers.
+#   Defaults to $::os_service_default
+#
+# [*rabbit_port*]
+#   (optional) Port for rabbitmq instance.
+#   Defaults to $::os_service_default
+#
+# [*rabbit_password*]
+#   (optional) Password used to connect to rabbitmq.
+#   Defaults to $::os_service_default
+#
+# [*rabbit_userid*]
+#   (optional) User used to connect to rabbitmq.
+#   Defaults to $::os_service_default
+#
+# [*rabbit_virtual_host*]
+#   (optional) The RabbitMQ virtual host.
+#   Defaults to $::os_service_default
+#
+# [*rabbit_use_ssl*]
+#   (optional) Connect over SSL for RabbitMQ
+#   Defaults to $::os_service_default
+#
+# [*rabbit_ha_queues*]
+#   (optional) Use HA queues in RabbitMQ.
+#   Defaults to $::os_service_default
+#
+# [*rabbit_heartbeat_timeout_threshold*]
+#   (optional) Number of seconds after which the RabbitMQ broker is considered
+#   down if the heartbeat keepalive fails.  Any value >0 enables heartbeats.
+#   Heartbeating helps to ensure the TCP connection to RabbitMQ isn't silently
+#   closed, resulting in missed or lost messages from the queue.
+#   (Requires kombu >= 3.0.7 and amqp >= 1.4.0)
+#   Defaults to $::os_service_default
+#
+# [*rabbit_heartbeat_rate*]
+#   (optional) How often during the rabbit_heartbeat_timeout_threshold period to
+#   check the heartbeat on RabbitMQ connection.  (i.e. rabbit_heartbeat_rate=2
+#   when rabbit_heartbeat_timeout_threshold=60, the heartbeat will be checked
+#   every 30 seconds.
+#   Defaults to $::os_service_default
+#
+# [*amqp_durable_queues*]
+#   (optional) Define queues as "durable" to rabbitmq.
+#   Defaults to $::os_service_default
+#
+# [*enable_queue*]
+#   (optional) Enable asynchronous queuing
+#   Defaults to $::os_service_default
+#
+# [*queue_namespace*]
+#   (optional) Namespace for the queue
+#   Defaults to $::os_service_default
+#
+# [*queue_topic*]
+#   (optional) Topic for the queue
+#   Defaults to $::os_service_default
+#
+# [*queue_version*]
+#   (optional) Version for the task API
+#   Defaults to $::os_service_default
+#
+# [*queue_server_name*]
+#   (optional) Server name for RPC service
+#   Defaults to $::os_service_default
+#
+# [*retry_scheduler_initial_delay_seconds*]
+#   (optional) Seconds (float) to wait before starting retry scheduler
+#   Defaults to $::os_service_default
+#
+# [*retry_scheduler_periodic_interval_max_seconds*]
+#   (optional) Seconds (float) to wait between starting retry scheduler
+#   Defaults to $::os_service_default
+#
+# [*enabled_secretstore_plugins*]
+#   (optional) Enabled secretstore plugins. Multiple plugins
+#   are defined in a list eg. ['store_crypto', dogtag_crypto']
+#   Defaults to $::os_service_default
+#
+# [*enabled_crypto_plugins*]
+#   (optional) Enabled crypto_plugins.  Multiple plugins
+#   are defined in a list eg. ['simple_crypto','p11_crypto']
+#   Defaults to $::os_service_default
+#
+# [*enabled_certificate_plugins*]
+#   (optional) Enabled certificate plugins as a list.
+#   e.g. ['snakeoil_ca', 'dogtag']
+#   Defaults to $::os_service_default
+#
+# [*enabled_certificate_event_plugins*]
+#   (optional) Enabled certificate event plugins as a list
+#   Defaults to $::os_service_default
+#
+# [*kombu_ssl_ca_certs*]
+#   (optional) SSL certification authority file (valid only if SSL enabled).
+#   Defaults to $::os_service_default
+#
+# [*kombu_ssl_certfile*]
+#   (optional) SSL cert file (valid only if SSL enabled).
+#   Defaults to $::os_service_default
+#
+# [*kombu_ssl_keyfile*]
+#   (optional) SSL key file (valid only if SSL enabled).
+#   Defaults to $::os_service_default
+#
+# [*kombu_ssl_version*]
+#   (optional) SSL version to use (valid only if SSL enabled).
+#   Valid values are TLSv1, SSLv23 and SSLv3. SSLv2 may be
+#   available on some distributions.
+#   Defaults to $::os_service_default
+#
+# [*kombu_reconnect_delay*]
+#   (optional) How long to wait before reconnecting in response to an AMQP
+#   consumer cancel notification.
+#   Defaults to $::os_service_default
+#
+# [*kombu_compression*]
+#   (optional) Possible values are: gzip, bz2. If not set compression will not
+#   be used. This option may notbe available in future versions. EXPERIMENTAL.
+#   (string value)
+#   Defaults to $::os_service_default
+#
+# [*manage_service*]
+#   (optional) If Puppet should manage service startup / shutdown.
+#   Defaults to true.
+#
+# [*enabled*]
+#   (optional) Whether to enable services.
+#   Defaults to true.
+#
+class barbican::api (
+  $ensure_package                                = 'present',
+  $client_package_ensure                         = 'present',
+  $bind_host                                     = '0.0.0.0',
+  $bind_port                                     = '9311',
+  $host_href                                     = undef,
+  $max_allowed_secret_in_bytes                   = $::os_service_default,
+  $max_allowed_request_size_in_bytes             = $::os_service_default,
+  $rpc_backend                                   = $::os_service_default,
+  $enable_queue                                  = $::os_service_default,
+  $queue_namespace                               = $::os_service_default,
+  $queue_topic                                   = $::os_service_default,
+  $queue_version                                 = $::os_service_default,
+  $queue_server_name                             = $::os_service_default,
+  $retry_scheduler_initial_delay_seconds         = $::os_service_default,
+  $retry_scheduler_periodic_interval_max_seconds = $::os_service_default,
+  $enabled_secretstore_plugins                   = $::os_service_default,
+  $enabled_crypto_plugins                        = $::os_service_default,
+  $enabled_certificate_plugins                   = $::os_service_default,
+  $enabled_certificate_event_plugins             = $::os_service_default,
+  $manage_service                                = true,
+  $enabled                                       = true,
+) inherits barbican::params {
+
+#  include ::barbican::db
+#  include ::barbican::api::logging
+  include ::barbican::client
+
+  file { ['/etc/barbican', '/var/log/barbican']:
+    ensure  => directory,
+    require => Package['barbican-api'],
+    notify  => Service['barbican-api'],
+  }
+
+  # TODO: Remove the posix users and permissions and merge this definition
+  # with the previous one, once the barbican package has been updated
+  # with the correct ownership for this directory.
+  file { ['/var/lib/barbican']:
+    ensure  => directory,
+    mode    => '0770',
+    owner   => 'root',
+    group   => 'barbican',
+    require => Package['barbican-api'],
+    notify  => Service['barbican-api'],
+  }
+
+  file { ['/etc/barbican/barbican.conf',
+          '/etc/barbican/barbican-api-paste.ini',
+          '/etc/barbican/gunicorn-config.py']:
+    ensure  => present,
+    require => Package['barbican-api'],
+    notify  => Service['barbican-api'],
+  }
+
+  package { 'uwsgi-plugin-python':
+    ensure => $ensure_package,
+    name   => $::barbican::params::uwsgi_python_package_name,
+  } ->
+  package { 'barbican-api':
+    ensure => $ensure_package,
+    name   => $::barbican::params::api_package_name,
+    tag    => ['openstack', 'barbican-api-package'],
+  }
+
+  File['/etc/barbican/barbican.conf']          -> Barbican_config<||>
+  File['/etc/barbican/barbican-api-paste.ini'] -> Barbican_api_paste_ini<||>
+  Barbican_config<||>                          ~> Service['barbican-api']
+  Barbican_api_paste_ini<||>                   ~> Service['barbican-api']
+
+  # basic service config
+  if $host_href == undef {
+    $host_href_real = "http://${::fqdn}:${bind_port}"
+  } else {
+    $host_href_real = $host_href
+  }
+
+  barbican_config {
+    'DEFAULT/bind_host': value => $bind_host;
+    'DEFAULT/bind_port': value => $bind_port;
+    'DEFAULT/host_href': value => $host_href_real;
+  }
+
+  File['/etc/barbican/gunicorn-config.py'] ->
+    file_line { 'Modify bind_port in gunicorn-config.py':
+      path  => '/etc/barbican/gunicorn-config.py',
+      line  => "bind = '${bind_host}:${bind_port}'",
+      match => '.*bind = .*',
+    } -> Service['barbican-api']
+
+  # queue options
+  barbican_config {
+    'queue/enable':      value => $enable_queue;
+    'queue/namespace':   value => $queue_namespace;
+    'queue/topic':       value => $queue_topic;
+    'queue/version':     value => $queue_version;
+    'queue/server_name': value => $queue_server_name;
+  }
+
+  # retry scheduler and max allowed secret options
+  barbican_config {
+    'retry_scheduler/initial_delay_seconds':         value => $retry_scheduler_initial_delay_seconds;
+    'retry_scheduler/periodic_interval_max_seconds': value => $retry_scheduler_periodic_interval_max_seconds;
+    'DEFAULT/max_allowed_secret_in_bytes':           value => $max_allowed_secret_in_bytes;
+    'DEFAULT/max_allowed_request_size_in_bytes':     value => $max_allowed_request_size_in_bytes;
+  }
+
+  # enabled plugins
+  barbican_config {
+    'secretstore/enabled_secretstore_plugins':             value => $enabled_secretstore_plugins;
+    'crypto/enabled_crypto_plugins':                       value => $enabled_crypto_plugins;
+    'certificate/enabled_certificate_plugins':             value => $enabled_certificate_plugins;
+    'certificate_event/enabled_certificate_event_plugins': value => $enabled_certificate_event_plugins;
+  }
+
+  if $manage_service {
+    if $enabled {
+      $service_ensure = 'running'
+    } else {
+      $service_ensure = 'stopped'
+    }
+  }
+
+  service { 'barbican-api':
+    ensure     => $service_ensure,
+    name       => $::barbican::params::api_service_name,
+    enable     => $enabled,
+    hasstatus  => true,
+    hasrestart => true,
+    tag        => 'barbican-service',
+  }
+
+}

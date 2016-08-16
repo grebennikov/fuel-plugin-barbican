@@ -1,0 +1,23 @@
+attributes:
+  metadata:
+    # Settings group can be one of "general", "security", "compute", "network",
+    # "storage", "logging", "openstack_services" and "other".
+    group: 'other'
+  user_password:
+    value: "BarbicanPAssword"
+    label: "user password"
+    description: "Barbican service user password"
+    type: "password"
+    weight: 10
+  db_password:
+    value: "BarbicanDbPassword"
+    label: "db password"
+    description: "Barbican db password"
+    type: "password"
+    weight: 20
+  use_contrail:
+    type: "checkbox"
+    weight: 30
+    label: "Contrail plugin activated"
+    description: "Check is Contrail plugin is installed and activated.\nContrail VRouter on the compute nodes will be setup\nto use Barbican for LBaaS"
+    value: false

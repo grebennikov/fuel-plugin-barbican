@@ -1,1 +1,4 @@
-# fuel-plugin-barbican
+fuel-plugin-barbican
+============
+
+Plugin description

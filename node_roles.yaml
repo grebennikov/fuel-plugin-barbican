@@ -1,0 +1,13 @@
+barbican:
+  # Role name
+  name: "Barbican"
+  # Role description
+  description: "Install Barbican components"
+  # If primary then during orchestration this role will be
+  # separated into primary-role and role
+  has_primary: true
+  # Assign public IP to node if true
+  public_ip_required: false
+  # Weight that will be used to sort out the
+  # roles on the Fuel web UI
+  weight: 1000
